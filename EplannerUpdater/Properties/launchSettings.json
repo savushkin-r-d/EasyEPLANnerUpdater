@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EplannerUpdater": {
+      "commandName": "Project",
+      "commandLineArgs": "es -1"
+    }
+  }
+}
