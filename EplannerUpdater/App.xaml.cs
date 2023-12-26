@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Data;
 using System.Printing;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace Updater;
@@ -82,6 +83,18 @@ public partial class App : System.Windows.Application
             return;
 
         CheckUpdates?.Error(message);
+        MainWindow?.Dispatcher.Invoke(() =>
+        {
+            MainWindow.Close();
+        });
+    }
+
+    public static void UpdateCheckerPass(string message)
+    {
+        if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
+            return;
+
+        CheckUpdates?.Pass(message);
         MainWindow?.Dispatcher.Invoke(() =>
         {
             MainWindow.Close();

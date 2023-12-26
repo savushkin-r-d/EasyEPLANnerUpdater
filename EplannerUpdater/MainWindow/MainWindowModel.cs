@@ -145,7 +145,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         CheckPAT();
     }
 
-
     #region public properties
     public GitHubClient GitHub { get; } = new(new ProductHeaderValue("EasyEPLANnerUpdater"));
 
@@ -302,7 +301,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         if (CurrentRelease == Releases.FirstOrDefault())
         {
-            App.UpdateCheckerError("Последние обновления уже установлены.");
+            App.UpdateCheckerPass("Последние обновления уже установлены.");
         }
 
         Status = true;
