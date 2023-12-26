@@ -177,7 +177,7 @@ public partial class MainWindow : Window
     {  
         Close();
         if (Model.StartButtonMode)
-            Process.Start(Settings.Default.EplanAppPath, "/NoUpdater /variant:\"Electric P8\"");
+            Process.Start(Settings.Default.EplanAppPath, "/WithoutUpdater /variant:\"Electric P8\"");
     }
 
     private void ToolBarWithoutOverflow_Loaded(object sender, RoutedEventArgs e)
