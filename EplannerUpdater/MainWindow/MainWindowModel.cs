@@ -269,7 +269,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             TimeOut(source.Token);
 
             Releases = GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.GitRepo).Result
-                .ToList().OrderByDescending(r => r.CreatedAt).Select(r => new ReleaseItem(r) as IReleaseItem).ToList();
+                .ToList().OrderByDescending(r => r.CreatedAt)
+                .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
+                .Select(r => new ReleaseItem(r) as IReleaseItem)
+                .ToList();
 
             source.Cancel();
 
@@ -287,7 +290,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             MainWindow.Dispatcher.Invoke(() =>
             {
                 MainWindow.State.Visibility = Visibility.Visible;
-                MainWindow.State.Text = "Не удается получить сведения об обновлениях. Попробуйте позже. (Попробуйте установить PAT в настройках)";
+                MainWindow.State.Text = "Не удается получить сведения об обновлениях." +
+                " Попробуйте позже. (Попробуйте установить PAT в настройках)";
             });
 
             App.UpdateCheckerError("Ошибка!");

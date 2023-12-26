@@ -127,10 +127,10 @@ namespace Updater {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2023.12.11")]
-        public string InitialRelease {
+        [global::System.Configuration.DefaultSettingValueAttribute("2021.7")]
+        public string InitialReleaseAfter {
             get {
-                return ((string)(this["InitialRelease"]));
+                return ((string)(this["InitialReleaseAfter"]));
             }
         }
     }
