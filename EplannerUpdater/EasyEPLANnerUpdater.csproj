@@ -25,9 +25,7 @@
 
   <ItemGroup>
     <None Remove="Images\app.ico" />
-    <None Remove="Images\eplan.icon" />
     <None Remove="Images\loading.gif" />
-    <None Remove="Images\loading2.gif" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,18 +40,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Settings\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
+  	<Compile Update="Settings.Designer.cs">
+  	  <DesignTimeSharedInput>True</DesignTimeSharedInput>
+  	  <AutoGen>True</AutoGen>
+  	  <DependentUpon>Settings.settings</DependentUpon>
+  	</Compile>
   </ItemGroup>
-
+  
   <ItemGroup>
-    <None Update="Settings\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
+  	<None Update="Settings.settings">
+  	  <Generator>SettingsSingleFileGenerator</Generator>
+  	  <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+  	</None>
   </ItemGroup>
 
   <ItemGroup>
