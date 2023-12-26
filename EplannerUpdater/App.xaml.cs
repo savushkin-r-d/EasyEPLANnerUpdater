@@ -48,6 +48,12 @@ public partial class App : System.Windows.Application
         }
 
         MainWindow = new MainWindow();
+        
+        if (SourceArg == RunSourceArg.FromMenu)
+        {
+            MainWindow.StartButton.Visibility = Visibility.Collapsed;
+        }
+
         await MainWindow.InitialyzeData();
 
         CheckUpdates?.Dispatcher.InvokeShutdown();
@@ -72,7 +78,7 @@ public partial class App : System.Windows.Application
 
     public static void UpdateCheckerError(string message)
     {
-        if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != "es")
+        if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
             return;
 
         CheckUpdates?.Error(message);

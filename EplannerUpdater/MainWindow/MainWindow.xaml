@@ -138,31 +138,31 @@
         <Grid DockPanel.Dock="Bottom" Height="25">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ProgressBar Grid.Column="0" Name="ProgressBarDownload"/>
-            <Button Grid.Column="1" Name="StartButton" Click="StartButton_Click">
+            <Button Grid.Column="1" Width="200" Name="StartButton" Click="StartButton_Click">
                 <Button.Style>
                     <Style TargetType="{x:Type Button}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Model.StartButtonMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" Value="true">
-                                <Setter Property="Background" Value="Green"></Setter>
+                                <Setter Property="Background" Value="#FF27A727"></Setter>
                                 <Setter Property="Content">
                                     <Setter.Value>
                                         <WrapPanel>
                                             <Polygon Points="0,0, 8,5, 0,10" VerticalAlignment="Center" Stroke="Black" Fill="Black" />
-                                            <TextBlock Text="Запустить EPLAN" TextAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Margin="5,0,0,0" Text="Запустить EPLAN" TextAlignment="Center" VerticalAlignment="Center"/>
                                         </WrapPanel>
                                     </Setter.Value>
                                 </Setter>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Model.StartButtonMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" Value="false">
-                                <Setter Property="Background" Value="Gray"></Setter>
+                                <Setter Property="Background" Value="LightGray"></Setter>
                                 <Setter Property="Content">
                                     <Setter.Value>
                                         <WrapPanel>
                                             <Polygon Points="0,0, 7,4, 7,0 14,5 7,10 7,6 0,10" VerticalAlignment="Center" Stroke="Black" Fill="Black" />
-                                            <TextBlock Text="Пропустить" TextAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Margin="5,0,0,0" Text="Пропустить" TextAlignment="Center" VerticalAlignment="Center"/>
                                         </WrapPanel>
                                     </Setter.Value>
                                 </Setter>

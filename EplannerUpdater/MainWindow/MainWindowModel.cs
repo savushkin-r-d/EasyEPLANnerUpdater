@@ -27,6 +27,11 @@ namespace Updater;
 public interface IMainWindowModel
 {
     /// <summary>
+    /// github-client
+    /// </summary>
+    GitHubClient GitHub { get; }
+
+    /// <summary>
     /// Все релизы
     /// </summary>
     List<IReleaseItem>? Releases { get; }
@@ -50,6 +55,44 @@ public interface IMainWindowModel
     /// Инициализация PR's
     /// </summary>
     void InitializePullRequests();
+
+    /// <summary>
+    /// Статус инициализцации релизов и пулл-реквестов
+    /// </summary>
+    bool Status { get; }
+
+    /// <summary>
+    /// main window
+    /// </summary>
+    MainWindow MainWindow { get; }
+
+    /// <summary>
+    /// Проверить используемый PAT
+    /// </summary>
+    void CheckPAT();
+
+    /// <summary>
+    /// Получить последние обновления
+    /// </summary>
+    /// <returns>Список последних обновлений</returns>
+    List<IReleaseItem>? GetLatestsReleases();
+
+    /// <summary>
+    /// Скачать обновление релиза
+    /// </summary>
+    /// <param name="releaseItem">Релиз для установки обновлений</param>
+    void InstallAsset(ReleaseItem? releaseItem);
+
+    /// <summary>
+    /// Скачать артифакт пулл-реквеста
+    /// </summary>
+    /// <param name="pullRequestItem"></param>
+    void InstallPRArtifact(PullRequestItem? pullRequestItem);
+
+    /// <summary>
+    /// Установить обновления
+    /// </summary>
+    void UpdateAssemblies(object? sender, System.ComponentModel.AsyncCompletedEventArgs e);
 }
 
 public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
@@ -89,12 +132,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     #endregion
 
 
-
-
-    
-
-
-
     public MainWindowModel(MainWindow mainWindow)
     {
         this.mainWindow = mainWindow;
@@ -117,8 +154,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     public IReleaseItem? CurrentRelease { get; private set; } = null;
 
     public List<IPullRequsetItem> PullRequests { get; private set; } = [];
-
-    public bool ParentProcessKilled { get; private set; }
 
     public bool Status { get; private set; } = false;
 
@@ -176,19 +211,20 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             return;
         }
 
-
-        //var issue = issueList[0];
         PullRequests = artifactList
             .Where(art => pullRequestList.Any(pr => art.WorkflowRun.HeadSha == pr.Head.Sha))
             .ToDictionary(art => pullRequestList.First(pr => art.WorkflowRun.HeadSha == pr.Head.Sha), art => art)
-            .ToDictionary(item => item.Key, item => (art: item.Value, issue: issueList.FirstOrDefault(issue => issue.Number == GetPullRequestConnectedIssue(item.Key))))
+            .ToDictionary(item => item.Key, item => (art: item.Value, issue: issueList.FirstOrDefault(issue => issue.Number == GetConnectedIssueFromPullRequest(item.Key))))
             .Select(item => new PullRequestItem(item.Key, item.Value.art, item.Value.issue) as IPullRequsetItem)
             .ToList();
 
         Status = true;
     }
 
-    private int GetPullRequestConnectedIssue(PullRequest pullRequest)
+    /// <summary>
+    /// Получить id issue из комментария PR
+    /// </summary>
+    private int GetConnectedIssueFromPullRequest(PullRequest pullRequest)
     {
         if (int.TryParse(IssueIDRegex().Match(pullRequest.Body ?? "").Groups["id"].Value, out var value))
             return value;
@@ -209,6 +245,9 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Таймаут на запросы github
+    /// </summary>
     private static async void TimeOut(CancellationToken token)
     {
         await Task.Run(async () =>
@@ -288,7 +327,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         using (var webClient = new WebClient())
         {
             webClient.DownloadFileCompleted += UpdateAssemblies;
-            webClient.DownloadProgressChanged += WebClient_DownloadProgressChanged;
+            webClient.DownloadProgressChanged += (sender, e) => MainWindow.Progress = e.ProgressPercentage / 1.25;
 
             webClient.DownloadFileAsync(new Uri(releaseItem.Release.Assets[0].BrowserDownloadUrl), @$"{LOCATION}\{TMP_ASSET_ARCHIVE}");
         }
@@ -317,9 +356,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         Settings.Default.PullRequestNumber = pullRequestItem.PullRequest.Number;
     }
 
-    private void WebClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        => MainWindow.Progress = e.ProgressPercentage / 1.25;
-
     public async void UpdateAssemblies(object? sender, System.ComponentModel.AsyncCompletedEventArgs e)
     {
         await Task.Run(() =>
@@ -331,7 +367,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 {
                     Settings.Default.EplanAppPath = parentProc?.MainModule?.FileName;
                     parentProc?.Kill();
-                    ParentProcessKilled = true;
                 }
             }
 
@@ -359,10 +394,19 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             MainWindow.ResetProgressBarWithDelay();
 
             StartButtonMode = true;
+            MainWindow.Dispatcher.Invoke(() =>
+            {
+                MainWindow.StartButton.Visibility = Visibility.Visible;
+            });
         });
     }
 
-    public static void CopyReleaseFiles(string path, string copyPath)
+    /// <summary>
+    /// Копировать файлы ассета из временной папки в рабочую
+    /// </summary>
+    /// <param name="path">Путь для копирования</param>
+    /// <param name="copyPath">Путь для вставки</param>
+    private static void CopyReleaseFiles(string path, string copyPath)
     {
         string[] files = Directory.GetFiles(path);
         foreach (string file in files)
@@ -379,9 +423,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             if (dir is null)
                 continue;
             var dir_info = new DirectoryInfo(dir);
+            Directory.CreateDirectory(copyPath + dir_info.Name);
             CopyReleaseFiles(dir, copyPath + dir_info.Name + "\\");
         }
     }
-
-
 }
