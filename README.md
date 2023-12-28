@@ -1,6 +1,7 @@
 # EasyEPLANner Updater - Open Source
 
 EasyEPLANner Updater - Средство управления обновлениями для проекта [EasyEPLANner](https://github.com/savushkin-r-d/EasyEPLANner).
+Запуск данного приложения из надстройки и при запуске EPLAN работает начиная с версии **EasyEPLANner** [2023.12.28](https://github.com/savushkin-r-d/EasyEPLANner/releases/tag/2023.12.28).
 
 ## EasyEPLANner Updater - документация по использованию
 
