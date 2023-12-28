@@ -127,4 +127,12 @@ public partial class SettingsDialog : Window
                 break;
         }
     }
+
+    private void PATHelpButton_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater/blob/manual-readme/README.md#как-создать-pat")
+        {
+            UseShellExecute = true
+        });
+    }
 }

@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
@@ -55,11 +56,6 @@ public interface IMainWindowModel
     /// Инициализация PR's
     /// </summary>
     void InitializePullRequests();
-
-    /// <summary>
-    /// Статус инициализцации релизов и пулл-реквестов
-    /// </summary>
-    bool Status { get; }
 
     /// <summary>
     /// main window
@@ -154,8 +150,6 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
     public List<IPullRequsetItem> PullRequests { get; private set; } = [];
 
-    public bool Status { get; private set; } = false;
-
     public bool StartButtonMode
     {
         get => startButtonMode;
@@ -193,20 +187,13 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         try
         {
-            var source = new CancellationTokenSource();
-            TimeOut(source.Token);
-
             pullRequestList = [.. GitHub.Repository.PullRequest.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo).Result];
             artifactList = [.. GitHub.Actions.Artifacts.ListArtifacts(Settings.Default.GitOwner, Settings.Default.GitRepo).Result.Artifacts];
             issueList = [.. GitHub.Issue.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo, new RepositoryIssueRequest { State = ItemStateFilter.Open }).Result];
-
-
-            source.Cancel();
         }
         catch
         {
             App.UpdateCheckerError("Ошибка!");
-            Status = false;
             return;
         }
 
@@ -217,7 +204,12 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             .Select(item => new PullRequestItem(item.Key, item.Value.art, item.Value.issue) as IPullRequsetItem)
             .ToList();
 
-        Status = true;
+        if (Settings.Default.UsePullRequestVersion)
+        {
+            var currentPR = PullRequests.Find(pr => pr.PullRequest.Number == Settings.Default.PullRequestNumber);
+            if (currentPR is not null)
+                currentPR.IsCurrentArtifact = true;
+        }
     }
 
     /// <summary>
@@ -230,11 +222,11 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         else return -1;
     }
 
-    public void CheckPAT()
+    public async void CheckPAT()
     {
         try
         {
-            User = GitHub.User.Current().Result;
+            User = await GitHub.User.Current();
         }
         catch
         {
@@ -244,67 +236,66 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Таймаут на запросы github
-    /// </summary>
-    private static async void TimeOut(CancellationToken token)
-    {
-        await Task.Run(async () =>
-        {
-            await Task.Delay(5000);
-            if (!token.IsCancellationRequested)
-            {
-                App.UpdateCheckerError("Время проверки вышло");
-            }
-        }, token);
-    }
-
-
-    public void InitialyzeReleses()
+    public async void InitialyzeReleses()
     {
         try
         {
-            var source = new CancellationTokenSource();
-            TimeOut(source.Token);
-
-            Releases = GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.GitRepo).Result
-                .ToList().OrderByDescending(r => r.CreatedAt)
-                .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
-                .Select(r => new ReleaseItem(r) as IReleaseItem)
-                .ToList();
-
-            source.Cancel();
+            var taskReleases = GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.GitRepo);
+            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
+            {
+                var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
+                if (completedTask == taskReleases)
+                {
+                    timeoutCancellationTokenSource.Cancel();
+                    Releases = (await taskReleases).ToList().OrderByDescending(r => r.CreatedAt)
+                        .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
+                        .Select(r => new ReleaseItem(r) as IReleaseItem)
+                        .ToList();
+                }
+                else
+                {
+                    throw new TimeoutException("The operation has timed out.");
+                }
+            }
 
             var releaseTag = Settings.Default.ReleaseTag;
 
             if (string.IsNullOrEmpty(releaseTag) is false)
             {
                 CurrentRelease = Releases.Find(r => r.Release.TagName == releaseTag);
-                if (CurrentRelease is not null)
+                if (CurrentRelease is not null && Settings.Default.UsePullRequestVersion is false)
                     CurrentRelease.IsCurrentRelease = true;
+                else CurrentRelease = null;
             }
         }
         catch
         {
+            App.LoadingTokenSource.Cancel();
+            App.UpdateCheckerError("Ошибка!");
             MainWindow.Dispatcher.Invoke(() =>
             {
                 MainWindow.State.Visibility = Visibility.Visible;
                 MainWindow.State.Text = "Не удается получить сведения об обновлениях." +
-                " Попробуйте позже. (Попробуйте установить PAT в настройках)";
+                " Попробуйте позже.\n (Или попробуйте установить PAT в настройках)";
             });
 
-            App.UpdateCheckerError("Ошибка!");
-
-            Status = false;
+            if (Settings.Default.ShowPullRequests)
+                MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
             return;
         }
 
         if (CurrentRelease == Releases.FirstOrDefault())
         {
+            MainWindow.Dispatcher.Invoke(() =>
+            {
+                MainWindow.State.Visibility = Visibility.Visible;
+                MainWindow.State.Text = "Последние обновления установлены.";
+            });
             App.UpdateCheckerPass("Последние обновления уже установлены.");
         }
-
-        Status = true;
+        if (Settings.Default.ShowPullRequests)
+            MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
+        App.LoadingTokenSource.Cancel();
     }
 
     public List<IReleaseItem>? GetLatestsReleases()
@@ -334,8 +325,9 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
             webClient.DownloadFileAsync(new Uri(releaseItem.Release.Assets[0].BrowserDownloadUrl), @$"{LOCATION}\{TMP_ASSET_ARCHIVE}");
         }
-        #pragma warning restore SYSLIB0014
+#pragma warning restore SYSLIB0014
 
+        Settings.Default.UsePullRequestVersion = false;
         Settings.Default.ReleaseTag = releaseItem.Release.TagName;
     }
 
@@ -400,6 +392,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             MainWindow.Dispatcher.Invoke(() =>
             {
                 MainWindow.StartButton.Visibility = Visibility.Visible;
+                MainWindow.RefreshButton_Click(this, new RoutedEventArgs());
             });
         });
     }
