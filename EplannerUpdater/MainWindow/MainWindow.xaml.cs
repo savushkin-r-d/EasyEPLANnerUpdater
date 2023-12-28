@@ -39,7 +39,10 @@ public partial class MainWindow : Window
         {
             Model.InitialyzeReleses();
             if (Settings.Default.ShowPullRequests)
+            {
                 Model.InitializePullRequests();
+                Dispatcher.Invoke(RefreshCancel);
+            }
         });
     }
 
@@ -51,9 +54,6 @@ public partial class MainWindow : Window
 
     private void SetUpItems()
     {
-        if (Model.Status is false)
-            return;
-
         var latestsReleases = Model.GetLatestsReleases();
         if (latestsReleases is not null)
         {
@@ -70,37 +70,44 @@ public partial class MainWindow : Window
             PullRequestView.ItemsSource = Model.PullRequests;
     }
 
+    public CancellationTokenSource? LoadingTokenSource { get; private set; } = null;
 
-    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    public async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
+        LoadingTokenSource?.Cancel();
+        LoadingTokenSource = new CancellationTokenSource();
+
         ReleasesView.ItemsSource = null;
         PullRequestView.ItemsSource = null;
 
-        var source = new CancellationTokenSource();
-        Loading(source.Token);
+        Loading(LoadingTokenSource.Token);
         await InitialyzeData();
+    }
 
-        source.Cancel();
+    public void RefreshCancel()
+    {
+        LoadingTokenSource?.Cancel();
         SetUpItems();
     }
 
-    private void Loading(CancellationToken token)
+    public void Loading(CancellationToken token)
     {
         _ = Dispatcher.Invoke(async() =>
         {
-            State.Visibility = Visibility.Visible;
+            LoadingState.Visibility = Visibility.Visible;
+            State.Visibility = Visibility.Collapsed;
             ViewAllRelease.Visibility = Visibility.Hidden;
             int dots = 0;
 
             while (!token.IsCancellationRequested)
             {
-                State.Text = $"Загрузка{new string('.', dots++)}";
+                LoadingState.Text = $"Загрузка{new string('.', dots++)}";
                 if (dots == 4)
                     dots = 0;
                 await Task.Delay(250);
             }
-            if (Model.Status is true)
-                State.Visibility = Visibility.Hidden;
+
+            LoadingState.Visibility = Visibility.Collapsed;
         });
     }
 
@@ -142,6 +149,7 @@ public partial class MainWindow : Window
     {
         ReleasesView.ItemsSource = Model.Releases;
         ViewAllRelease.Visibility = Visibility.Hidden;
+        State.Visibility = Visibility.Collapsed;
     }
 
     private void PullRequestButton_Click(object sender, RoutedEventArgs e)

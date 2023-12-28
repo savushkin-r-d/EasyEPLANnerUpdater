@@ -22,6 +22,8 @@ public partial class App : System.Windows.Application
 
     new public static MainWindow? MainWindow { get; set; }
 
+    public static CancellationTokenSource LoadingTokenSource { get; set; } = new CancellationTokenSource();
+
     private void Application_Exit(object sender, ExitEventArgs e)
     {
         Settings.Default.Save();
@@ -49,13 +51,19 @@ public partial class App : System.Windows.Application
         }
 
         MainWindow = new MainWindow();
-        
+
+        MainWindow.Loading(LoadingTokenSource.Token);
+
         if (SourceArg == RunSourceArg.FromMenu)
         {
             MainWindow.StartButton.Visibility = Visibility.Collapsed;
         }
 
-        await MainWindow.InitialyzeData();
+        if (SourceArg == RunSourceArg.AtStartUpEplan && Settings.Default.RunMode == RunMode.ThereAreUpdates)
+        {
+            MainWindow.InitialyzeData().Wait();
+        }
+        else await MainWindow.InitialyzeData();
 
         CheckUpdates?.Dispatcher.InvokeShutdown();
 
