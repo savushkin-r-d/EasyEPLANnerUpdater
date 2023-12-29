@@ -50,7 +50,7 @@ public interface IMainWindowModel
     /// <summary>
     /// Инициализация релизов
     /// </summary>
-    void InitialyzeReleses();
+    Task InitialyzeReleses();
 
     /// <summary>
     /// Инициализация PR's
@@ -89,6 +89,16 @@ public interface IMainWindowModel
     /// Установить обновления
     /// </summary>
     void UpdateAssemblies(object? sender, System.ComponentModel.AsyncCompletedEventArgs e);
+
+    /// <summary>
+    /// Делегат события после инициализации релизов
+    /// </summary>
+    public delegate void ReleasesInitializedHandler(int code);
+
+    /// <summary>
+    /// Событие вызываемое после инициализации релизов
+    /// </summary>
+    event ReleasesInitializedHandler? ReleasesInitialized;
 }
 
 public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
@@ -170,15 +180,20 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
     }
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public event IMainWindowModel.ReleasesInitializedHandler? ReleasesInitialized;
+
     public MainWindow MainWindow => mainWindow;
     #endregion
 
-    public event PropertyChangedEventHandler? PropertyChanged;
+
+
     public void OnPropertyChanged([CallerMemberName] string prop = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
     }
 
+    
     public void InitializePullRequests()
     {
         List<PullRequest> pullRequestList;
@@ -236,7 +251,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
     }
 
-    public async void InitialyzeReleses()
+    public async Task InitialyzeReleses()
     {
         try
         {
@@ -279,8 +294,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 " Попробуйте позже.\n (Или попробуйте установить PAT в настройках)";
             });
 
-            if (Settings.Default.ShowPullRequests)
+            if (Settings.Default.ShowPullRequests is false)
                 MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
+
+            ReleasesInitialized?.Invoke(1);
             return;
         }
 
@@ -293,9 +310,12 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             });
             App.UpdateCheckerPass("Последние обновления уже установлены.");
         }
-        if (Settings.Default.ShowPullRequests)
+        if (Settings.Default.ShowPullRequests is false)
             MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
         App.LoadingTokenSource.Cancel();
+
+
+        ReleasesInitialized?.Invoke(0);
     }
 
     public List<IReleaseItem>? GetLatestsReleases()

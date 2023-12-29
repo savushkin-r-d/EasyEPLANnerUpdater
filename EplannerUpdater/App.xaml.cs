@@ -60,15 +60,30 @@ public partial class App : System.Windows.Application
         }
 
         if (SourceArg == RunSourceArg.AtStartUpEplan && Settings.Default.RunMode == RunMode.ThereAreUpdates)
+            MainWindow.Model.ReleasesInitialized += Model_ReleasesInitialized;
+
+        _ = MainWindow.InitialyzeData();
+
+        if (SourceArg != RunSourceArg.AtStartUpEplan || Settings.Default.RunMode != RunMode.ThereAreUpdates)
         {
-            MainWindow.InitialyzeData().Wait();
+            MainWindow?.Show();
+            MainWindow?.Activate();
         }
-        else await MainWindow.InitialyzeData();
+    }
 
-        CheckUpdates?.Dispatcher.InvokeShutdown();
+    private async void Model_ReleasesInitialized(int code)
+    {
+        await Task.Run(() =>
+        {
+            CheckUpdates?.Dispatcher.InvokeShutdown();
 
-        MainWindow.Show();
-        MainWindow.Activate();
+            MainWindow?.Dispatcher.Invoke(() =>
+            {
+                MainWindow?.Show();
+                MainWindow?.Activate();
+            });
+
+        });
     }
 
     private void ThreadUpdateChecker()
