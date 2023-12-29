@@ -37,7 +37,7 @@ public partial class MainWindow : Window
     {
         await Task.Run(() => 
         {
-            Model.InitialyzeReleses();
+            _ = Model.InitialyzeReleses();
             if (Settings.Default.ShowPullRequests)
             {
                 Model.InitializePullRequests();
