@@ -1,4 +1,4 @@
-﻿using Octokit;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -54,6 +54,23 @@ public interface IMainWindowModel
     /// забивать ограничение по числу запросов
     /// </summary>
     void CheckUpdatesApp();
+
+    /// <summary>
+    /// Режим кнопки запуска EPLAN:
+    /// true: Запускать
+    /// false: Пропустить (EPLAN уже запущен)
+    /// </summary>
+    bool StartButtonMode { get; set; }
+
+    /// <summary>
+    /// Видимость кнопки запуска
+    /// </summary>
+    bool StartButtonVisibility { get; }
+
+    /// <summary>
+    /// GitHub user
+    /// </summary>
+    User? User { get; set; }
 
     /// <summary>
     /// Инициализация релизов
@@ -179,6 +196,9 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             OnPropertyChanged(nameof(StartButtonMode));
         }
     }
+
+    public bool StartButtonVisibility => (StartButtonMode is true && File.Exists(Settings.Default.EplanAppPath)) 
+        || startButtonMode is false;
 
     public User? User
     {
@@ -484,9 +504,11 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 var parentProc = Process.GetProcessById(App.ParrentProcessID);
                 if (parentProc is not null)
                 {
-                    Settings.Default.EplanAppPath = parentProc?.MainModule?.FileName;
-                    Settings.Default.Save();
-                    parentProc?.Kill();
+                    Settings.Default.EplanAppPath = parentProc.MainModule?.FileName;
+                    if (App.SourceArg == RunSourceArg.FromMenu)
+                        parentProc.CloseMainWindow();
+                    else
+                        parentProc.Kill();
                 }
             }
 

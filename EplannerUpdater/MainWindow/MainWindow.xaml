@@ -141,7 +141,8 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ProgressBar Grid.Column="0" Name="ProgressBarDownload"/>
-            <Button Grid.Column="1" Width="200" Name="StartButton" Click="StartButton_Click">
+            <Button Grid.Column="1" Width="200" Name="StartButton" Click="StartButton_Click" 
+                    Visibility="{Binding Model.StartButtonVisibility, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Button.Style>
                     <Style TargetType="{x:Type Button}">
                         <Style.Triggers>
