@@ -64,6 +64,7 @@ public partial class SettingsDialog : Window
                 NeedSetPAT.Visibility = Visibility.Visible;
                 Failure.Visibility = Visibility.Visible;
                 Settings.Default.ShowPullRequests = false;
+                Settings.Default.Save();
                 ShowPullRequests.IsEnabled = false;
                 Pat.Visibility = Visibility.Visible;
 
@@ -90,6 +91,7 @@ public partial class SettingsDialog : Window
     {
         Pat.Text = string.Empty;
         Settings.Default.PAT = string.Empty;
+        Settings.Default.Save();
     }
 
     private void Pat_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)

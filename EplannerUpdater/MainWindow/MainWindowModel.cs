@@ -248,6 +248,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             GitHub.Credentials = Credentials.Anonymous;
             User = null;
             Settings.Default.ShowPullRequests = false;
+            Settings.Default.Save();
         }
     }
 
@@ -349,6 +350,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         Settings.Default.UsePullRequestVersion = false;
         Settings.Default.ReleaseTag = releaseItem.Release.TagName;
+        Settings.Default.Save();
     }
 
     public async void InstallPRArtifact(PullRequestItem? pullRequestItem)
@@ -369,6 +371,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         Settings.Default.UsePullRequestVersion = true;
         Settings.Default.PullRequestNumber = pullRequestItem.PullRequest.Number;
+        Settings.Default.Save();
     }
 
     public async void UpdateAssemblies(object? sender, System.ComponentModel.AsyncCompletedEventArgs e)
@@ -381,6 +384,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 if (parentProc is not null)
                 {
                     Settings.Default.EplanAppPath = parentProc?.MainModule?.FileName;
+                    Settings.Default.Save();
                     parentProc?.Kill();
                 }
             }
