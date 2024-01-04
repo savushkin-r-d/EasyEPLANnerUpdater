@@ -1,4 +1,4 @@
-﻿<Window x:Class="Updater.MainWindow"
+<Window x:Class="Updater.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -33,6 +33,7 @@
         <Geometry x:Key="Artifact">M 11.1896 0.8143 L 15.845 0.8143 L 15.845 13.2289 L 18.1728 13.2289 L 13.5173 19.4362 L 9.5 13.9 L 10.4 13.2289 H 11.1896 V 12.7 C 11.2 12.7 13.2 12.6 13.2 10.6 L 13.2 6 C 13.2 3.7 11.2 3.5 11.1896 3.5518 Z M 7.7755 2.3661 l 4.0735 2.3627 c 0.419 0.2436 0.6766 0.6906 0.6766 1.1747 v 4.7315 a 1.3578 1.3578 90 0 1 -0.6766 1.1747 l -4.0735 2.3627 a 1.3578 1.3578 90 0 1 -1.3625 0 l -4.0735 -2.3627 a 1.3578 1.3578 90 0 1 -0.6766 -1.1747 v -4.7315 c 0 -0.4842 0.2576 -0.9319 0.6766 -1.1747 l 4.0735 -2.3627 a 1.3578 1.3578 90 0 1 1.3625 0 z m -0.7782 1.0071 l -3.5925 2.0833 l 3.6895 2.14 l 3.6895 -2.14 l -3.5925 -2.0833 a 0.1924 0.1924 90 0 0 -0.194 0 z m -4.1705 3.0936 v 4.1682 c 0 0.0698 0.0365 0.1327 0.097 0.1676 l 3.5886 2.0818 v -4.2799 z m 4.8495 6.4176 l 3.5886 -2.0818 a 0.194 0.194 90 0 0 0.097 -0.1676 v -4.1682 l -3.6856 2.1376 z l 0 -1.7768 z</Geometry>
         <Geometry x:Key="PullRequest">M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z</Geometry>
         <Geometry x:Key="Issue">M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z</Geometry>
+        <Geometry x:Key="BaseObjectDescription">M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688l-.011-.013-2.914-2.914-.013-.011Z</Geometry>
         <Style x:Key="ViewerScrollBar" TargetType="{x:Type ScrollBar}" />
         <Style x:Key="ScrollViewerStyleScrollBar" TargetType="{x:Type ScrollViewer}">
             <Setter Property="Template">
@@ -93,12 +94,32 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <ToolBar Grid.Column="0" ToolBarTray.IsLocked="True" Loaded="ToolBarWithoutOverflow_Loaded">
-                <Button Name="RefreshButton" Click="RefreshButton_Click">
+                <Button Name="RefreshButton" Click="RefreshButton_Click" ToolTip="Обновить">
                     <Path Width="20" VerticalAlignment="Center" HorizontalAlignment="Center" Height="20" Fill="Black" Data="{StaticResource Refresh}"/>
                 </Button>
-                <Button Background="Transparent" BorderBrush="Transparent" Name="SettingsButton" Click="SettingsButton_Click">
+                <Button Background="Transparent" BorderBrush="Transparent" Name="SettingsButton" Click="SettingsButton_Click" ToolTip="Настройки">
                     <Path Width="20" Height="20" Fill="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Data="{StaticResource Settings}"/>
+                </Button>
+                <Button ToolTip="Обновить файл описания базовых объектов" Background="Transparent" BorderBrush="Transparent" 
+                        Name="UpdateBTODescriptionButton" Click="UpdateBTODescriptionButton_Click" Margin="30,0,0,0"
+                        Visibility="{Binding Model.User, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Converter={StaticResource NullableToVisibilityConverter}}">
+                    <WrapPanel>
+                        <Path Width="16" Height="16" Fill="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Data="{StaticResource BaseObjectDescription}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Height="12" Grid.Row="0" VerticalAlignment="Top" Text="Базовые объекты:" Margin="3,0,5,0" FontSize="11"/>
+                            <TextBlock Height="12" Grid.Row="1" TextAlignment="Center" VerticalAlignment="Bottom" Text="{Binding Source={x:Static local:Settings.Default}, Path=BTODescriptionUsedVersion, Mode=TwoWay}" FontSize="11"/>
+                        </Grid>
+                        <Path Width="20" Height="20" Fill="Black" HorizontalAlignment="Center" VerticalAlignment="Center" Data="{StaticResource Artifact}"/>
+                    </WrapPanel>
                 </Button>
             </ToolBar>
             <ToolBar Grid.Column="1" Name="UserToolBar" ToolBarTray.IsLocked="True" Loaded="ToolBarWithoutOverflow_Loaded" >

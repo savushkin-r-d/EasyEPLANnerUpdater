@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Updater" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
@@ -40,6 +40,18 @@
     </Setting>
     <Setting Name="UpdaterGitRepo" Type="System.String" Scope="Application">
       <Value Profile="(Default)">EasyEPLANnerUpdater</Value>
+    </Setting>
+    <Setting Name="BTODescriptionUsedVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="BTODescriptionRepo" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ptusa-Lua-dairy-system</Value>
+    </Setting>
+    <Setting Name="BTODescriptionPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">EasyEplannerObjectsDescription/sys_base_objects_description.lua</Value>
+    </Setting>
+    <Setting Name="BTODescriptionFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Lua\BaseObjectsDescriptionFiles\sys_base_objects_description.lua</Value>
     </Setting>
   </Settings>
 </SettingsFile>

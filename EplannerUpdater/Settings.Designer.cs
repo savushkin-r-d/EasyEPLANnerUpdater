@@ -165,5 +165,44 @@ namespace Updater {
                 return ((string)(this["UpdaterGitRepo"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BTODescriptionUsedVersion {
+            get {
+                return ((string)(this["BTODescriptionUsedVersion"]));
+            }
+            set {
+                this["BTODescriptionUsedVersion"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ptusa-Lua-dairy-system")]
+        public string BTODescriptionRepo {
+            get {
+                return ((string)(this["BTODescriptionRepo"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("EasyEplannerObjectsDescription/sys_base_objects_description.lua")]
+        public string BTODescriptionPath {
+            get {
+                return ((string)(this["BTODescriptionPath"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Lua\\BaseObjectsDescriptionFiles\\sys_base_objects_description.lua")]
+        public string BTODescriptionFilePath {
+            get {
+                return ((string)(this["BTODescriptionFilePath"]));
+            }
+        }
     }
 }
