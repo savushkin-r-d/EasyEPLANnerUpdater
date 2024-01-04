@@ -231,7 +231,7 @@
                                             </Border>
                                             <TextBlock Grid.Column="1" Text="{Binding Path=Release.TagName}" VerticalAlignment="Top"/>
                                         </Grid>
-                                        <TextBlock Grid.Column="1" Text="{Binding Path=ChangeLog}" TextWrapping="Wrap" TextAlignment="Justify"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Path=ChangeLog}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,0,5"/>
                                         <Button Grid.Column="2"
                                                 Width="26" Height="26"
                                                 Background="Transparent" 
