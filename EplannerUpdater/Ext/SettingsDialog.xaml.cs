@@ -69,7 +69,7 @@ public partial class SettingsDialog : Window
 
                 CreateTokenButton.Visibility = Visibility.Visible;
             }
-            mainWindow.Model.CheckPAT();
+            _ = mainWindow.Model.CheckPAT();
         }
     }
 

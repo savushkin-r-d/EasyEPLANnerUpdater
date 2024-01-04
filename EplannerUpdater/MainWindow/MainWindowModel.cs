@@ -21,6 +21,7 @@ using System.Web;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Updater;
@@ -48,6 +49,13 @@ public interface IMainWindowModel
     List<IPullRequsetItem>? PullRequests { get; }
 
     /// <summary>
+    /// Проверка наличия обновлений данного приложения.
+    /// Если не установлен PAT, то осуществляется только раз в день, чтобы не
+    /// забивать ограничение по числу запросов
+    /// </summary>
+    void CheckUpdatesApp();
+
+    /// <summary>
     /// Инициализация релизов
     /// </summary>
     Task InitialyzeReleses();
@@ -65,7 +73,7 @@ public interface IMainWindowModel
     /// <summary>
     /// Проверить используемый PAT
     /// </summary>
-    void CheckPAT();
+    Task CheckPAT();
 
     /// <summary>
     /// Получить последние обновления
@@ -121,6 +129,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     /// <summary> Octokit пользователь </summary>
     private User? user;
 
+    Task? taskCheckPAT;
+
     /// <summary>
     /// Режим кнопки запуска:
     ///     true - Пропустить
@@ -148,7 +158,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
         catch { }
 
-        CheckPAT();
+        taskCheckPAT = CheckPAT();
     }
 
     #region public properties
@@ -194,6 +204,97 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     }
 
     
+    public void CheckUpdatesApp()
+    {
+        taskCheckPAT?.Wait();
+
+        if (Settings.Default.UpdaterReleaseLastCheck == DateTime.Today && User is null)
+            return;
+
+        List<Release>? updaterReleases = null;
+
+        try
+        {
+            updaterReleases = [.. GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.UpdaterGitRepo).Result];
+            var latestAvailableRelease = updaterReleases.TakeWhile(r => r.TagName != Settings.Default.UpdaterReleaseTag).ToList().FirstOrDefault();
+
+            if (latestAvailableRelease is null)
+            {
+                Settings.Default.UpdaterReleaseLastCheck = DateTime.Today;
+                Settings.Default.Save();
+                return;
+            }
+
+            #pragma warning disable SYSLIB0014 // Тип или член устарел
+            using (var webClient = new WebClient())
+            {
+                webClient.DownloadFileCompleted += (sender, e) => UpdateApp(latestAvailableRelease);
+                webClient.DownloadProgressChanged += (sender, e) => MainWindow.Progress = e.ProgressPercentage / 1.25;
+
+                webClient.DownloadFileAsync(new Uri(latestAvailableRelease.Assets[0].BrowserDownloadUrl), @$".\{TMP_ASSET_ARCHIVE}");
+            }
+            #pragma warning restore SYSLIB0014
+        }
+        catch
+        {
+            App.LoadingTokenSource.Cancel();
+            App.UpdateCheckerError("Ошибка!");
+            MainWindow.Dispatcher.Invoke(() =>
+            {
+                MainWindow.State.Visibility = Visibility.Visible;
+                MainWindow.State.Text = "Не удается получить сведения об обновлениях." +
+                " Попробуйте позже.\n (Или попробуйте установить PAT в настройках)";
+            });
+
+            if (Settings.Default.ShowPullRequests is false)
+                MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
+
+            return;
+        }
+    }
+
+    private async void UpdateApp(Release latestAvailableRelease)
+    {
+        await Task.Run(() =>
+        {
+            var updaterFile = (Process.GetCurrentProcess().MainModule?.FileName ?? "");
+            var updaterName = updaterFile.Split('\\').Last().Replace(".exe", "");
+
+            File.Delete(@$".\{updaterName}.exe.bak");
+            File.Delete(@$".\{updaterName}.dll.bak");
+            File.Delete(@$".\Octokit.dll.bak");
+            MainWindow.Progress = 83;
+
+            File.Move(@$".\{updaterName}.exe", @$".\{updaterName}.exe.bak");
+            File.Move(@$".\{updaterName}.dll", @$".\{updaterName}.dll.bak");
+            File.Move(@$".\Octokit.dll", @$".\Octokit.dll.bak");
+            MainWindow.Progress = 85;
+
+            try { Directory.Delete(@$"{TMP_ASSET_DIR}", true); }
+            catch (Exception) { }
+            MainWindow.Progress = 88;
+
+            ZipFile.ExtractToDirectory(@$"{TMP_ASSET_ARCHIVE}", @$"{TMP_ASSET_DIR}");
+            MainWindow.Progress = 93;
+
+            CopyReleaseFiles(@$".\{TMP_ASSET_DIR}\Updater\", @".\");
+            MainWindow.Progress = 97;
+
+            File.Delete(@$"{TMP_ASSET_ARCHIVE}");
+            Directory.Delete(@$"{TMP_ASSET_DIR}", true);
+            MainWindow.Progress = 100;
+
+            // Save info about check
+            Settings.Default.UpdaterReleaseLastCheck = DateTime.Today;
+            Settings.Default.UpdaterReleaseTag = latestAvailableRelease.TagName;
+            Settings.Default.Save();
+
+            // Restart programm
+            Process.Start(updaterFile, string.Join(" ", Environment.GetCommandLineArgs().Skip(1)));
+            App.Current.Dispatcher.Invoke(App.Current.Shutdown);
+        });
+    }
+
     public void InitializePullRequests()
     {
         List<PullRequest> pullRequestList;
@@ -237,7 +338,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         else return -1;
     }
 
-    public async void CheckPAT()
+    public async Task CheckPAT()
     {
         try
         {
@@ -345,7 +446,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
             webClient.DownloadFileAsync(new Uri(releaseItem.Release.Assets[0].BrowserDownloadUrl), @$"{LOCATION}\{TMP_ASSET_ARCHIVE}");
         }
-#pragma warning restore SYSLIB0014
+        #pragma warning restore SYSLIB0014
 
         Settings.Default.UsePullRequestVersion = false;
         Settings.Default.ReleaseTag = releaseItem.Release.TagName;
