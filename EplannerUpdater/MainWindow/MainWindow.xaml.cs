@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         await Task.Run(() => 
         {
             _ = Model.InitialyzeReleses();
+            Model.CheckUpdatesApp();
             if (Settings.Default.ShowPullRequests)
             {
                 Model.InitializePullRequests();
@@ -49,7 +50,7 @@ public partial class MainWindow : Window
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         SetUpItems();
-        Model.CheckPAT();
+        _ = Model.CheckPAT();
     }
 
     private void SetUpItems()
