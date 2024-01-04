@@ -29,6 +29,6 @@ public partial class ReleaseItem(Release release) : IReleaseItem
         }
     }
 
-    [GeneratedRegex(@"```ChangeLog(?:\r\n|\n)(?<change_log>[\S\s]*)(?:\r\n|\n)```", RegexOptions.Multiline)]
+    [GeneratedRegex(@"```ChangeLog(?:\r\n|\n)(?<change_log>[\S\s]*?)(?:\r\n|\n)```", RegexOptions.Multiline)]
     private static partial Regex ChangeLogRegex();
 }
