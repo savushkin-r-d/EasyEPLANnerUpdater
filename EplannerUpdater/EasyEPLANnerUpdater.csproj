@@ -30,8 +30,6 @@
 
   <ItemGroup>
     <PackageReference Include="Octokit" Version="9.0.0" />
-    <PackageReference Include="WpfAnimatedGif" Version="2.0.2" />
-    <PackageReference Include="XamlAnimatedGif" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
