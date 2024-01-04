@@ -194,6 +194,12 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <ListView BorderBrush="Transparent" Grid.Row="0" Name="ReleasesView">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <EventSetter Event="PreviewMouseDoubleClick" Handler="ReleaseItem_PreviewMouseDoubleClick" />
+                                <EventSetter Event="PreviewMouseDown" Handler="ReleaseItem_PreviewMouseDown"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate DataType="local:ReleaseItem">
                                 <Border BorderBrush="#FF000000" BorderThickness="0,0,0,0.5" Margin="-6,-2,-6,-2">

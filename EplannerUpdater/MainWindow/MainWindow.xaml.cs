@@ -198,4 +198,24 @@ public partial class MainWindow : Window
             }
         }
     }
+    private void ReleaseItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            Model.InstallAsset((sender as System.Windows.Controls.ListViewItem)?.DataContext as ReleaseItem);
+        }
+    }
+
+    private void ReleaseItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Pressed &&
+            (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+        {
+            Process.Start(
+            new ProcessStartInfo(((sender as System.Windows.Controls.ListViewItem)?.DataContext as ReleaseItem)?.Release.HtmlUrl ?? "")
+            {
+                UseShellExecute = true
+            });
+        }
+    }
 }
