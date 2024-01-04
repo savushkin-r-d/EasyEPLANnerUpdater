@@ -29,7 +29,7 @@ public partial class App : System.Windows.Application
         Settings.Default.Save();
     }
 
-    private async void Application_Startup(object sender, StartupEventArgs e)
+    private void Application_Startup(object sender, StartupEventArgs e)
     {
         if (e.Args.Length == 2)
         {
