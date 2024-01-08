@@ -91,3 +91,10 @@ EasyEPLANner Updater - Средство управления обновлени�
 
 ## License
 The project is licensed under [MIT](LICENSE) license.
+
+<pre>
+<a href="./LICENSE">1</a>
+</pre>
+```
+[1](LICENSE)
+```
