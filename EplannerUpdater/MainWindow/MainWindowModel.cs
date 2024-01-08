@@ -335,6 +335,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         PullRequests = artifactList
             .Where(art => pullRequestList.Any(pr => art.WorkflowRun.HeadSha == pr.Head.Sha))
+            .DistinctBy(art => art.WorkflowRun.HeadSha)
             .ToDictionary(art => pullRequestList.First(pr => art.WorkflowRun.HeadSha == pr.Head.Sha), art => art)
             .ToDictionary(item => item.Key, item => (art: item.Value, issue: issueList.FirstOrDefault(issue => issue.Number == GetConnectedIssueFromPullRequest(item.Key))))
             .Select(item => new PullRequestItem(item.Key, item.Value.art, item.Value.issue) as IPullRequsetItem)
