@@ -1,4 +1,5 @@
 using Octokit;
+using Octokit.Internal;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,7 +23,9 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Shapes;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TreeView;
 
 namespace Updater;
 
@@ -138,8 +141,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     #pragma warning disable CS8601 // Возможно, назначение-ссылка, допускающее значение NULL.
     #pragma warning disable CS8602 // Разыменование вероятной пустой ссылки.
     /// <summary> Путь к папке в которой находится приложение (Eplanner 2.9) </summary>
-    private static readonly string LOCATION = Path.GetDirectoryName(
-        Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
+    private static readonly string LOCATION = System.IO.Path.GetDirectoryName(
+        System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
     #pragma warning restore CS8601
     #pragma warning restore CS8602
 
@@ -472,6 +475,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         Settings.Default.UsePullRequestVersion = false;
         Settings.Default.ReleaseTag = releaseItem.Release.TagName;
+        Settings.Default.BTODescriptionUsedVersion = $"R: {releaseItem.Release.PublishedAt.GetValueOrDefault().Date.ToShortDateString()}";
         Settings.Default.Save();
     }
 
@@ -493,6 +497,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         Settings.Default.UsePullRequestVersion = true;
         Settings.Default.PullRequestNumber = pullRequestItem.PullRequest.Number;
+        Settings.Default.BTODescriptionUsedVersion = $"#{pullRequestItem.PullRequest.Number}";
         Settings.Default.Save();
     }
 
@@ -543,6 +548,49 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 MainWindow.RefreshButton_Click(this, new RoutedEventArgs());
             });
         });
+    }
+
+    public async void UpdateBTODescription()
+    {
+        RepositoryContent? description;
+        DateTimeOffset? lastCommitForFileDate;
+
+        try
+        {
+            description = (await GitHub.Repository.Content.GetAllContents(Settings.Default.GitOwner,
+                Settings.Default.BTODescriptionRepo, Settings.Default.BTODescriptionPath))
+            .FirstOrDefault();
+
+            var request = new CommitRequest 
+            { 
+                Path = Settings.Default.BTODescriptionPath,
+                Sha = "master" 
+            };
+            lastCommitForFileDate = 
+                (await GitHub.Repository.Commit
+                .GetAll(Settings.Default.GitOwner, Settings.Default.BTODescriptionRepo, request))
+                .FirstOrDefault()?.Commit.Author.Date;
+        }
+        catch
+        {
+            return;
+        }
+
+        #pragma warning disable SYSLIB0014 // Тип или член устарел
+        using (var webClient = new WebClient())
+        {
+            webClient.DownloadFileCompleted += async (sender, e) => { await Task.Delay(500); MainWindow.Progress = 0; };
+            webClient.DownloadProgressChanged += (sender, e) => MainWindow.Progress = e.ProgressPercentage;
+
+            webClient.DownloadFileAsync(new Uri(description?.DownloadUrl ?? ""), @$"{LOCATION}\{Settings.Default.BTODescriptionFilePath}");
+        }
+        #pragma warning restore SYSLIB0014
+
+        if (lastCommitForFileDate is not null)
+        {
+            Settings.Default.BTODescriptionUsedVersion = lastCommitForFileDate.GetValueOrDefault().Date.ToShortDateString();
+            Settings.Default.Save();
+        }
     }
 
     /// <summary>

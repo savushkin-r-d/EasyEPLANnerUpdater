@@ -1,4 +1,4 @@
-﻿using Octokit;
+using Octokit;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -226,4 +226,7 @@ public partial class MainWindow : Window
             });
         }
     }
+
+    private void UpdateBTODescriptionButton_Click(object sender, RoutedEventArgs e)
+        => Model.UpdateBTODescription();
 }
