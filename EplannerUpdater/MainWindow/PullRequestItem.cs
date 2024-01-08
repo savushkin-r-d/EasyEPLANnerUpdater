@@ -26,4 +26,11 @@ public class PullRequestItem(PullRequest pullRequest, Artifact artifact, Issue? 
     public string? IssueToolTip => HasIssue? $"{issue?.Title}\n\n{issue?.Body}" : null;
 
     public bool IsCurrentArtifact { get; set; } = false;
+
+    public bool ReviewRequested => pullRequest.RequestedReviewers
+        .Select(user => user.Login)
+        .Contains(App.MainWindow?.Model?.User?.Login);
+
+    public string GroupName => ReviewRequested ? "Ожидают обзора" : "Все запросы";
 }
+    

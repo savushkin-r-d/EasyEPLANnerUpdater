@@ -68,7 +68,14 @@ public partial class MainWindow : Window
         }
 
         if (Settings.Default.ShowPullRequests)
+        {
             PullRequestView.ItemsSource = Model.PullRequests;
+            (CollectionViewSource.GetDefaultView(PullRequestView.ItemsSource) as CollectionView)
+                ?.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PullRequestItem.GroupName)));
+            (CollectionViewSource.GetDefaultView(PullRequestView.ItemsSource) as CollectionView)
+                ?.SortDescriptions.Add(new SortDescription(nameof(PullRequestItem.GroupName), ListSortDirection.Descending));
+        }
+
     }
 
     public CancellationTokenSource? LoadingTokenSource { get; private set; } = null;
