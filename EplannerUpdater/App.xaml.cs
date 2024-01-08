@@ -79,8 +79,9 @@ public partial class App : System.Windows.Application
 
             MainWindow?.Dispatcher.Invoke(() =>
             {
-                MainWindow?.Show();
-                MainWindow?.Activate();
+                MainWindow.Show();
+                MainWindow.Activate();
+                MainWindow.Model.ReleasesInitialized -= Model_ReleasesInitialized;
             });
 
         });
@@ -105,11 +106,14 @@ public partial class App : System.Windows.Application
         if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
             return;
 
-        CheckUpdates?.Error(message);
-        MainWindow?.Dispatcher.Invoke(() =>
+        if (CheckUpdates is not null)
         {
-            MainWindow.Close();
-        });
+            CheckUpdates.Error(message);
+            MainWindow?.Dispatcher.Invoke(() =>
+            {
+                MainWindow.Close();
+            });
+        }
     }
 
     public static void UpdateCheckerPass(string message)
@@ -117,10 +121,13 @@ public partial class App : System.Windows.Application
         if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
             return;
 
-        CheckUpdates?.Pass(message);
-        MainWindow?.Dispatcher.Invoke(() =>
+        if (CheckUpdates is not null)
         {
-            MainWindow.Close();
-        });
+            CheckUpdates.Pass(message);
+            MainWindow?.Dispatcher.Invoke(() =>
+            {
+                MainWindow.Close();
+            });
+        }
     }
 }
