@@ -10,9 +10,12 @@ public record class RunMode
 
     /// <summary> Default: Запускать при наличии обновлений </summary>
     public static readonly RunMode ThereAreUpdates = new(1);
-    
+
+    /// <summary> Запускать при наличии обновлений или запрошено ревью</summary>
+    public static readonly RunMode ThereAreUpdatesOrReviewRequested = new(2);
+
     /// <summary> Никогда не запускать </summary>
-    public static readonly RunMode Never = new(2);
+    public static readonly RunMode Never = new(3);
 
     public static implicit operator int(RunMode runMode) => runMode.mode;
 
