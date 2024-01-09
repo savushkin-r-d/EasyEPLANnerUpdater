@@ -24,7 +24,6 @@
 
   <ItemGroup>
     <None Remove="Images\app.ico" />
-    <None Remove="Images\loading.gif" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +32,6 @@
 
   <ItemGroup>
     <Resource Include="Images\app.ico" />
-    <Resource Include="Images\loading.gif" />
   </ItemGroup>
 
   <ItemGroup>
