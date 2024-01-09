@@ -30,9 +30,10 @@
 
             <WrapPanel Grid.Row="0" Margin="0,3,0,3">
                 <TextBlock VerticalAlignment="Center">Запускать :</TextBlock>
-                <ComboBox Width="Auto" Margin="5,0,0,0" SelectedIndex="{Binding Source={x:Static local:Settings.Default}, Path=RunMode, Mode=TwoWay}">
+                <ComboBox Name="RunModeComboBox" Width="Auto" Margin="5,0,0,0" SelectedIndex="{Binding Source={x:Static local:Settings.Default}, Path=RunMode, Mode=TwoWay}">
                     <ComboBoxItem>Всегда</ComboBoxItem>
                     <ComboBoxItem>При наличии обновленний</ComboBoxItem>
+                    <ComboBoxItem Name="ReviewRequested" IsEnabled="False">При наличии обновленний или запроса на review</ComboBoxItem>
                     <ComboBoxItem>Никогда</ComboBoxItem>
                 </ComboBox>
             </WrapPanel>

@@ -69,11 +69,20 @@ public partial class MainWindow : Window
 
         if (Settings.Default.ShowPullRequests)
         {
+            PullRequestView.ItemsSource = null;
+
             PullRequestView.ItemsSource = Model.PullRequests;
-            (CollectionViewSource.GetDefaultView(PullRequestView.ItemsSource) as CollectionView)
-                ?.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PullRequestItem.GroupName)));
-            (CollectionViewSource.GetDefaultView(PullRequestView.ItemsSource) as CollectionView)
-                ?.SortDescriptions.Add(new SortDescription(nameof(PullRequestItem.GroupName), ListSortDirection.Descending));
+
+            var collectionView = (CollectionViewSource.GetDefaultView(PullRequestView.ItemsSource) as CollectionView);
+
+            if (collectionView is null)
+                return;
+
+            if (collectionView.GroupDescriptions.Count <= 0)
+                collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(PullRequestItem.GroupName)));
+            if (collectionView.SortDescriptions.Count <= 0)
+                collectionView.SortDescriptions.Add(
+                    new SortDescription(nameof(PullRequestItem.GroupName), ListSortDirection.Descending));
         }
 
     }

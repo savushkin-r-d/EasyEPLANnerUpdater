@@ -53,6 +53,7 @@ public partial class SettingsDialog : Window
                 NeedSetPAT.Visibility = Visibility.Collapsed;
                 Failure.Visibility = Visibility.Collapsed;
                 ShowPullRequests.IsEnabled = true;
+                ReviewRequested.IsEnabled = true;
 
                 Pat.Visibility = Visibility.Hidden;
                 CreateTokenButton.Visibility = Visibility.Hidden;
@@ -66,6 +67,9 @@ public partial class SettingsDialog : Window
                 Settings.Default.ShowPullRequests = false;
                 Settings.Default.Save();
                 ShowPullRequests.IsEnabled = false;
+                ReviewRequested.IsEnabled = false;
+                if (RunModeComboBox.SelectedIndex == RunMode.ThereAreUpdatesOrReviewRequested)
+                    RunModeComboBox.SelectedIndex = RunMode.ThereAreUpdates;
                 Pat.Visibility = Visibility.Visible;
 
                 CreateTokenButton.Visibility = Visibility.Visible;
