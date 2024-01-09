@@ -3,7 +3,6 @@ using System.Configuration;
 using System.Data;
 using System.Printing;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Threading;
 
 namespace Updater;
