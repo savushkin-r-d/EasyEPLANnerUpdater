@@ -136,7 +136,15 @@ public partial class SettingsDialog : Window
 
     private void PATHelpButton_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater/blob/manual-readme/README.md#как-создать-pat")
+        Process.Start(new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater/blob/main/README.md#как-создать-pat")
+        {
+            UseShellExecute = true
+        });
+    }
+
+    private void SettingsHelp_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater?tab=readme-ov-file#настройки-приложения")
         {
             UseShellExecute = true
         });
