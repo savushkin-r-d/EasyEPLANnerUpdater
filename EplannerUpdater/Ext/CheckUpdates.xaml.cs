@@ -30,7 +30,7 @@ public partial class CheckUpdates : Window
     {
         Dispatcher.Invoke(async () =>
         {
-            LoadingGif.Visibility = Visibility.Collapsed;
+            Loading.Visibility = Visibility.Collapsed;
             FailureCheck.Visibility = Visibility.Visible;
             Text.Text = message;
             await Task.Delay(1000);
@@ -42,7 +42,7 @@ public partial class CheckUpdates : Window
     {
         Dispatcher.Invoke(async () =>
         {
-            LoadingGif.Visibility = Visibility.Collapsed;
+            Loading.Visibility = Visibility.Collapsed;
             PassCheck.Visibility = Visibility.Visible;
             Text.Text = message;
             await Task.Delay(1000);

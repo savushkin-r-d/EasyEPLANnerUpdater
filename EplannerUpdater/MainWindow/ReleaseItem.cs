@@ -1,6 +1,5 @@
 ﻿using Octokit;
 using System.Text.RegularExpressions;
-using static System.Windows.Forms.Design.AxImporter;
 
 namespace Updater;
 
