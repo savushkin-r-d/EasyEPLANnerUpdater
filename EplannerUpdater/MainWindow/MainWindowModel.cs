@@ -344,7 +344,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         if (Settings.Default.RunMode == RunMode.ThereAreUpdatesOrReviewRequested)
         {
-            if (PullRequests.Any(pr => pr.PullRequest.RequestedReviewers
+            if (PullRequests.Exists(pr => pr.PullRequest.RequestedReviewers
                 .Select(user => user.Login).Contains(Settings.Default.LastLoginedUser)))
             {
                 // Инициализация релиза: так как проверяется не только наличия обновлений,
@@ -394,30 +394,27 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         try
         {
             var taskReleases = GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.GitRepo);
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
-                if (completedTask == taskReleases)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    Releases = (await taskReleases).ToList().OrderByDescending(r => r.CreatedAt)
-                        .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
-                        .Select(r => new ReleaseItem(r) as IReleaseItem)
-                        .ToList();
-                }
-                else
-                {
-                    throw new TimeoutException("The operation has timed out.");
-                }
-            }
 
-            var releaseTag = Settings.Default.ReleaseTag;
+            using var timeoutCancellationTokenSource = new CancellationTokenSource();
+            var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
+            if (completedTask != taskReleases)
+                throw new TimeoutException("The operation has timed out.");
 
-            if (string.IsNullOrEmpty(releaseTag) is false)
+            timeoutCancellationTokenSource.Cancel();
+            Releases = (await taskReleases).ToList().OrderByDescending(r => r.CreatedAt)
+                .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
+                .Select(r => new ReleaseItem(r) as IReleaseItem)
+                .ToList();
+
+            if (string.IsNullOrEmpty(Settings.Default.ReleaseTag) is false)
             {
-                CurrentRelease = Releases.Find(r => r.Release.TagName == releaseTag);
-                if (CurrentRelease is not null && Settings.Default.UsePullRequestVersion is false)
-                    CurrentRelease.IsCurrentRelease = true;
+                CurrentRelease = Releases.Find(r => r.Release.TagName == Settings.Default.ReleaseTag);
+
+               
+
+
+                if (CurrentRelease is not null)
+                    CurrentRelease.IsCurrentRelease = Settings.Default.UsePullRequestVersion is false;
                 else CurrentRelease = null;
             }
         }
