@@ -41,7 +41,9 @@ public partial class App : System.Windows.Application
             Environment.Exit(0);
         }
 
-        if (SourceArg == RunSourceArg.AtStartUpEplan && Settings.Default.RunMode == RunMode.ThereAreUpdates)
+        if (SourceArg == RunSourceArg.AtStartUpEplan && 
+            (Settings.Default.RunMode == RunMode.ThereAreUpdates ||
+            Settings.Default.RunMode == RunMode.ThereAreUpdatesOrReviewRequested))
         {
             Thread newWindowThread = new(new ThreadStart(ThreadUpdateChecker));
             newWindowThread.SetApartmentState(ApartmentState.STA);
@@ -58,12 +60,14 @@ public partial class App : System.Windows.Application
             MainWindow.StartButton.Visibility = Visibility.Collapsed;
         }
 
-        if (SourceArg == RunSourceArg.AtStartUpEplan && Settings.Default.RunMode == RunMode.ThereAreUpdates)
+        if (SourceArg == RunSourceArg.AtStartUpEplan &&
+            (Settings.Default.RunMode == RunMode.ThereAreUpdates ||
+            Settings.Default.RunMode == RunMode.ThereAreUpdatesOrReviewRequested))
             MainWindow.Model.ReleasesInitialized += Model_ReleasesInitialized;
 
         _ = MainWindow.InitialyzeData();
 
-        if (SourceArg != RunSourceArg.AtStartUpEplan || Settings.Default.RunMode != RunMode.ThereAreUpdates)
+        if (SourceArg != RunSourceArg.AtStartUpEplan || Settings.Default.RunMode == RunMode.Always)
         {
             MainWindow?.Show();
             MainWindow?.Activate();
@@ -102,7 +106,7 @@ public partial class App : System.Windows.Application
 
     public static void UpdateCheckerError(string message)
     {
-        if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
+        if (Settings.Default.RunMode == RunMode.Never || SourceArg != RunSourceArg.AtStartUpEplan)
             return;
 
         if (CheckUpdates is not null)
@@ -117,7 +121,7 @@ public partial class App : System.Windows.Application
 
     public static void UpdateCheckerPass(string message)
     {
-        if (Settings.Default.RunMode != RunMode.ThereAreUpdates || SourceArg != RunSourceArg.AtStartUpEplan)
+        if (Settings.Default.RunMode == RunMode.Never || SourceArg != RunSourceArg.AtStartUpEplan)
             return;
 
         if (CheckUpdates is not null)

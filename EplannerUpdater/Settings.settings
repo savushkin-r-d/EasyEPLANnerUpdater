@@ -53,5 +53,8 @@
     <Setting Name="BTODescriptionFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Lua\BaseObjectsDescriptionFiles\sys_base_objects_description.lua</Value>
     </Setting>
+    <Setting Name="LastLoginedUser" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
