@@ -349,6 +349,18 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             .Select(item => new PullRequestItem(item.Key, item.Value.art, item.Value.issue) as IPullRequsetItem)
             .ToList();
 
+        if (Settings.Default.RunMode == RunMode.ThereAreUpdatesOrReviewRequested)
+        {
+            if (PullRequests.Exists(pr => pr.PullRequest.RequestedReviewers
+                .Select(user => user.Login).Contains(Settings.Default.LastLoginedUser)))
+            {
+                // Инициализация релиза: так как проверяется не только наличия обновлений,
+                // но и review requested 
+                ReleasesInitialized?.Invoke(0);
+            }
+            else App.UpdateCheckerPass("Последние обновления уже установлены.");
+        }
+
         if (Settings.Default.UsePullRequestVersion)
         {
             var currentPR = PullRequests.Find(pr => pr.PullRequest.Number == Settings.Default.PullRequestNumber);
@@ -372,6 +384,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         try
         {
             User = await GitHub.User.Current();
+            Settings.Default.LastLoginedUser = User.Login;
+            Settings.Default.Save();
         }
         catch
         {
@@ -387,30 +401,27 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         try
         {
             var taskReleases = GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.GitRepo);
-            using (var timeoutCancellationTokenSource = new CancellationTokenSource())
-            {
-                var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
-                if (completedTask == taskReleases)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    Releases = (await taskReleases).ToList().OrderByDescending(r => r.CreatedAt)
-                        .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
-                        .Select(r => new ReleaseItem(r) as IReleaseItem)
-                        .ToList();
-                }
-                else
-                {
-                    throw new TimeoutException("The operation has timed out.");
-                }
-            }
 
-            var releaseTag = Settings.Default.ReleaseTag;
+            using var timeoutCancellationTokenSource = new CancellationTokenSource();
+            var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
+            if (completedTask != taskReleases)
+                throw new TimeoutException("The operation has timed out.");
 
-            if (string.IsNullOrEmpty(releaseTag) is false)
+            timeoutCancellationTokenSource.Cancel();
+            Releases = (await taskReleases).ToList().OrderByDescending(r => r.CreatedAt)
+                .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
+                .Select(r => new ReleaseItem(r) as IReleaseItem)
+                .ToList();
+
+            if (string.IsNullOrEmpty(Settings.Default.ReleaseTag) is false)
             {
-                CurrentRelease = Releases.Find(r => r.Release.TagName == releaseTag);
-                if (CurrentRelease is not null && Settings.Default.UsePullRequestVersion is false)
-                    CurrentRelease.IsCurrentRelease = true;
+                CurrentRelease = Releases.Find(r => r.Release.TagName == Settings.Default.ReleaseTag);
+
+               
+
+
+                if (CurrentRelease is not null)
+                    CurrentRelease.IsCurrentRelease = Settings.Default.UsePullRequestVersion is false;
                 else CurrentRelease = null;
             }
         }
@@ -439,12 +450,18 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 MainWindow.State.Visibility = Visibility.Visible;
                 MainWindow.State.Text = "Последние обновления установлены.";
             });
-            App.UpdateCheckerPass("Последние обновления уже установлены.");
+
+            if (Settings.Default.RunMode != RunMode.ThereAreUpdatesOrReviewRequested ||
+                Settings.Default.ShowPullRequests is false)
+                App.UpdateCheckerPass("Последние обновления уже установлены.");
         }
         if (Settings.Default.ShowPullRequests is false)
             MainWindow.Dispatcher.Invoke(MainWindow.RefreshCancel);
         App.LoadingTokenSource.Cancel();
 
+        if (Settings.Default.RunMode == RunMode.ThereAreUpdatesOrReviewRequested
+            && Settings.Default.ShowPullRequests)
+            return;
 
         ReleasesInitialized?.Invoke(0);
     }

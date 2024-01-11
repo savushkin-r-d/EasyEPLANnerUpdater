@@ -204,5 +204,17 @@ namespace Updater {
                 return ((string)(this["BTODescriptionFilePath"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastLoginedUser {
+            get {
+                return ((string)(this["LastLoginedUser"]));
+            }
+            set {
+                this["LastLoginedUser"] = value;
+            }
+        }
     }
 }
