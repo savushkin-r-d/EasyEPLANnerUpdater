@@ -69,6 +69,11 @@ public interface IMainWindowModel
     bool StartButtonVisibility { get; }
 
     /// <summary>
+    /// Свойство указывающее, что запущен процесс установки
+    /// </summary>
+    bool Installing { get; }
+
+    /// <summary>
     /// GitHub user
     /// </summary>
     User? User { get; set; }
@@ -187,6 +192,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     public IReleaseItem? CurrentRelease { get; private set; } = null;
 
     public List<IPullRequsetItem> PullRequests { get; private set; } = [];
+
+    public bool Installing { get; private set; } = false;
 
     public bool StartButtonMode
     {
@@ -457,9 +464,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
     public void InstallAsset(ReleaseItem? releaseItem)
     {
-        if (releaseItem is null)
+        if (releaseItem is null || Installing)
             return;
 
+        Installing = true;
 
         #pragma warning disable SYSLIB0014 // Тип или член устарел
         using (var webClient = new WebClient())
@@ -479,8 +487,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
     public async void InstallPRArtifact(PullRequestItem? pullRequestItem)
     {
-        if (pullRequestItem is null)
+        if (pullRequestItem is null || Installing)
             return;
+
+        Installing = true;
 
         var stream = await GitHub.Actions.Artifacts.DownloadArtifact(Settings.Default.GitOwner, Settings.Default.GitRepo, pullRequestItem.Artifact.Id, "zip");
         MainWindow.Progress = 20;
@@ -513,6 +523,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                         parentProc.CloseMainWindow();
                     else
                         parentProc.Kill();
+
+                    App.ParrentProcessID = -1;
                 }
             }
 
@@ -542,9 +554,12 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             StartButtonMode = true;
             MainWindow.Dispatcher.Invoke(() =>
             {
-                MainWindow.StartButton.Visibility = Visibility.Visible;
+                if (File.Exists(Settings.Default.EplanAppPath))
+                    MainWindow.StartButton.Visibility = Visibility.Visible;
                 MainWindow.RefreshButton_Click(this, new RoutedEventArgs());
             });
+
+            Installing = false;
         });
     }
 
