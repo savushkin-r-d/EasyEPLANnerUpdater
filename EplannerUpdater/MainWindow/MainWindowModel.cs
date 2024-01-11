@@ -152,16 +152,16 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     /// <summary> Octokit пользователь </summary>
     private User? user;
 
-    Task? taskCheckPAT;
+    readonly Task? taskCheckPAT;
 
     /// <summary>
     /// Режим кнопки запуска:
     ///     true - Пропустить
     ///     false - Запустить
     /// </summary>
-    public bool startButtonMode = App.ParrentProcessID == -1;
+    private bool startButtonMode = App.ParrentProcessID == -1;
 
-    private MainWindow mainWindow;
+    private readonly MainWindow mainWindow;
 
     /// <summary>
     /// Шаблон для поиска ID issue в PR
@@ -179,7 +179,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         {
             GitHub.Credentials = new Credentials(Settings.Default.PAT);
         }
-        catch { }
+        catch 
+        {
+            // do nothing
+        }
 
         taskCheckPAT = CheckPAT();
     }
@@ -244,7 +247,8 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         try
         {
             updaterReleases = [.. GitHub.Repository.Release.GetAll(Settings.Default.GitOwner, Settings.Default.UpdaterGitRepo).Result];
-            var latestAvailableRelease = updaterReleases.TakeWhile(r => r.TagName != Settings.Default.UpdaterReleaseTag).ToList().FirstOrDefault();
+            var latestAvailableRelease = updaterReleases.TakeWhile(r => r.TagName != Settings.Default.UpdaterReleaseTag)
+                .AsEnumerable().FirstOrDefault();
 
             if (latestAvailableRelease is null)
             {
@@ -254,13 +258,11 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             }
 
             #pragma warning disable SYSLIB0014 // Тип или член устарел
-            using (var webClient = new WebClient())
-            {
-                webClient.DownloadFileCompleted += (sender, e) => UpdateApp(latestAvailableRelease);
-                webClient.DownloadProgressChanged += (sender, e) => MainWindow.Progress = e.ProgressPercentage / 1.25;
+            using var webClient = new WebClient();
+            webClient.DownloadFileCompleted += (sender, e) => _ = UpdateApp(latestAvailableRelease);
+            webClient.DownloadProgressChanged += (sender, e) => MainWindow.Progress = e.ProgressPercentage / 1.25;
 
-                webClient.DownloadFileAsync(new Uri(latestAvailableRelease.Assets[0].BrowserDownloadUrl), @$".\{TMP_ASSET_ARCHIVE}");
-            }
+            webClient.DownloadFileAsync(new Uri(latestAvailableRelease.Assets[0].BrowserDownloadUrl), @$".\{TMP_ASSET_ARCHIVE}");
             #pragma warning restore SYSLIB0014
         }
         catch
@@ -281,12 +283,12 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
     }
 
-    private async void UpdateApp(Release latestAvailableRelease)
+    private async Task UpdateApp(Release latestAvailableRelease)
     {
         await Task.Run(() =>
         {
             var updaterFile = (Process.GetCurrentProcess().MainModule?.FileName ?? "");
-            var updaterName = updaterFile.Split('\\').Last().Replace(".exe", "");
+            var updaterName = updaterFile.Split('\\').LastOrDefault()?.Replace(".exe", "");
 
             File.Delete(@$".\{updaterName}.exe.bak");
             File.Delete(@$".\{updaterName}.dll.bak");
@@ -299,7 +301,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             MainWindow.Progress = 85;
 
             try { Directory.Delete(@$"{TMP_ASSET_DIR}", true); }
-            catch (Exception) { }
+            catch (Exception) 
+            {
+                // do nothing
+            }
             MainWindow.Progress = 88;
 
             ZipFile.ExtractToDirectory(@$"{TMP_ASSET_ARCHIVE}", @$"{TMP_ASSET_DIR}");
@@ -342,10 +347,14 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         }
 
         PullRequests = artifactList
-            .Where(art => pullRequestList.Any(pr => art.WorkflowRun.HeadSha == pr.Head.Sha))
+            .Where(art => pullRequestList.Exists(pr => art.WorkflowRun.HeadSha == pr.Head.Sha))
             .DistinctBy(art => art.WorkflowRun.HeadSha)
             .ToDictionary(art => pullRequestList.First(pr => art.WorkflowRun.HeadSha == pr.Head.Sha), art => art)
-            .ToDictionary(item => item.Key, item => (art: item.Value, issue: issueList.FirstOrDefault(issue => issue.Number == GetConnectedIssueFromPullRequest(item.Key))))
+            .ToDictionary(
+                item => item.Key,
+                item => (
+                    art: item.Value, 
+                    issue: issueList.Find(issue => issue.Number == GetConnectedIssueFromPullRequest(item.Key))))
             .Select(item => new PullRequestItem(item.Key, item.Value.art, item.Value.issue) as IPullRequsetItem)
             .ToList();
 
@@ -415,7 +424,20 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
             if (string.IsNullOrEmpty(Settings.Default.ReleaseTag) is false)
             {
-                CurrentRelease = Releases.Find(r => r.Release.TagName == Settings.Default.ReleaseTag);
+                var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
+                if (completedTask == taskReleases)
+                {
+                    timeoutCancellationTokenSource.Cancel();
+                    Releases = (await taskReleases).AsEnumerable().OrderByDescending(r => r.CreatedAt)
+                        .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
+                        .Select(r => new ReleaseItem(r) as IReleaseItem)
+                        .ToList();
+                }
+                else
+                {
+                    throw new TimeoutException("The operation has timed out.");
+                }
+            }
 
                
 
@@ -546,7 +568,10 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             }
 
             try { Directory.Delete(@$"{LOCATION}\{TMP_ASSET_DIR}", true); }
-            catch (Exception) { }
+            catch (Exception) 
+            {
+                // do nothing
+            }
 
             MainWindow.Progress = 85;
 
@@ -566,7 +591,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             Directory.Delete(@$"{LOCATION}\{TMP_ASSET_DIR}", true);
 
             MainWindow.Progress = 100;
-            MainWindow.ResetProgressBarWithDelay();
+            _ = MainWindow.ResetProgressBarWithDelay();
 
             StartButtonMode = true;
             MainWindow.Dispatcher.Invoke(() =>
@@ -580,7 +605,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         });
     }
 
-    public async void UpdateBTODescription()
+    public async Task UpdateBTODescription()
     {
         RepositoryContent? description;
         DateTimeOffset? lastCommitForFileDate;
@@ -589,7 +614,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
         {
             description = (await GitHub.Repository.Content.GetAllContents(Settings.Default.GitOwner,
                 Settings.Default.BTODescriptionRepo, Settings.Default.BTODescriptionPath))
-            .FirstOrDefault();
+                .AsEnumerable().FirstOrDefault();
 
             var request = new CommitRequest 
             { 
@@ -599,7 +624,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
             lastCommitForFileDate = 
                 (await GitHub.Repository.Commit
                 .GetAll(Settings.Default.GitOwner, Settings.Default.BTODescriptionRepo, request))
-                .FirstOrDefault()?.Commit.Author.Date;
+                .AsEnumerable().FirstOrDefault()?.Commit.Author.Date;
         }
         catch
         {
@@ -646,7 +671,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
                 continue;
             var dir_info = new DirectoryInfo(dir);
             Directory.CreateDirectory(copyPath + dir_info.Name);
-            CopyReleaseFiles(dir, copyPath + dir_info.Name + "\\");
+            CopyReleaseFiles(dir, $"{copyPath}{dir_info.Name}\\");
         }
     }
 }
