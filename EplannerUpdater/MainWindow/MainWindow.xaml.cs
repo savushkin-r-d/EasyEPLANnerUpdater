@@ -242,7 +242,7 @@ public partial class MainWindow : Window
     private void HelpToWorkApp_Click(object sender, RoutedEventArgs e)
     {
         Process.Start(
-            new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater?tab=readme-ov-file#использование-приложения")
+            new ProcessStartInfo($"{Settings.Default.ReadMeUrl}использование-приложения")
             {
                 UseShellExecute = true
             });
