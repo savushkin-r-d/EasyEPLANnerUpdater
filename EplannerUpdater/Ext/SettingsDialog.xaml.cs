@@ -85,7 +85,7 @@ public partial class SettingsDialog : Window
 
     private void CreateTokenButton_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/settings/tokens/new")
+        Process.Start(new ProcessStartInfo(Settings.Default.CreateNewTokenUrl)
             {
                 UseShellExecute = true
             });
@@ -136,7 +136,15 @@ public partial class SettingsDialog : Window
 
     private void PATHelpButton_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo("https://github.com/savushkin-r-d/EasyEPLANnerUpdater/blob/manual-readme/README.md#как-создать-pat")
+        Process.Start(new ProcessStartInfo($"{Settings.Default.ReadMeUrl}как-создать-pat")
+        {
+            UseShellExecute = true
+        });
+    }
+
+    private void SettingsHelp_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo($"{Settings.Default.ReadMeUrl}настройки-приложения")
         {
             UseShellExecute = true
         });

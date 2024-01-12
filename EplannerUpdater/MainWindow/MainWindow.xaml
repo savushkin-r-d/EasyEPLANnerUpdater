@@ -136,9 +136,19 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Model.User.Login, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"></TextBlock>
-                    <Border Grid.Column="1" Background="Black" Width="18" Height="18" CornerRadius="9" 
+                    <Button Grid.Column="0" Background="Transparent" BorderBrush="Transparent" Margin="0,0,15,0"
+                            Name="HelpToWorkApp" Click="HelpToWorkApp_Click" ToolTip="Использование приложения">
+                        <Path VerticalAlignment="Center"
+                              Width="16.5" Height="16.5" 
+                              SnapsToDevicePixels="False" 
+                              Stroke="Transparent"
+                              Fill="SteelBlue"
+                              Data="{StaticResource Help}"/>
+                    </Button>
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding Model.User.Login, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"></TextBlock>
+                    <Border Grid.Column="2" Background="Black" Width="18" Height="18" CornerRadius="9" 
                             VerticalAlignment="Center"
                             Visibility="{Binding Model.User, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}, Converter={StaticResource NullableToVisibilityConverter}}" Margin="3,0,0,0">
                         <Path Name="LoginIcon"
@@ -278,7 +288,7 @@
                     <TextBlock Grid.Row="1" Name="LoadingState" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Загрузка" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="2" Name="State" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Visibility="Collapsed" TextWrapping="Wrap"/>
                     <Button Name="ViewAllRelease" Grid.Row="3" Background="Transparent" BorderBrush="Transparent" Click="ViewAllRelease_Click" Visibility="Collapsed">
-                        <TextBlock Text="Показать все версии"/>
+                        <TextBlock TextDecorations="Underline" Text="Показать все версии" Foreground="#FF227EC5"/>
                     </Button>
                 </Grid>
             </ScrollViewer>
