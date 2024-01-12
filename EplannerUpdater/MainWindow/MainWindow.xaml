@@ -288,7 +288,7 @@
                     <TextBlock Grid.Row="1" Name="LoadingState" HorizontalAlignment="Center" VerticalAlignment="Center" Text="Загрузка" Visibility="Collapsed"/>
                     <TextBlock Grid.Row="2" Name="State" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" Visibility="Collapsed" TextWrapping="Wrap"/>
                     <Button Name="ViewAllRelease" Grid.Row="3" Background="Transparent" BorderBrush="Transparent" Click="ViewAllRelease_Click" Visibility="Collapsed">
-                        <TextBlock Text="Показать все версии"/>
+                        <TextBlock TextDecorations="Underline" Text="Показать все версии" Foreground="#FF227EC5"/>
                     </Button>
                 </Grid>
             </ScrollViewer>
