@@ -238,4 +238,13 @@ public partial class MainWindow : Window
 
     private void UpdateBTODescriptionButton_Click(object sender, RoutedEventArgs e)
         => Model.UpdateBTODescription();
+
+    private void HelpToWorkApp_Click(object sender, RoutedEventArgs e)
+    {
+        Process.Start(
+            new ProcessStartInfo($"{Settings.Default.ReadMeUrl}использование-приложения")
+            {
+                UseShellExecute = true
+            });
+    }
 }
