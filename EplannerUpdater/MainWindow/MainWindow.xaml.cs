@@ -150,7 +150,7 @@ public partial class MainWindow : Window
     private void InstallPRArtifactButton_Click(object sender, RoutedEventArgs e)
         => Model.InstallPRArtifact((sender as System.Windows.Controls.Button)?.DataContext as PullRequestItem);
 
-    public async void ResetProgressBarWithDelay()
+    public async Task ResetProgressBarWithDelay()
     {
         await Task.Delay(300);
         Dispatcher.Invoke(() => ProgressBarDownload.Value = 0);
@@ -186,7 +186,7 @@ public partial class MainWindow : Window
         if (sender is System.Windows.Controls.Button button && button.DataContext is PullRequestItem item)
         {
             Process.Start(
-            new ProcessStartInfo(item?.Issue?.HtmlUrl ?? "")
+            new ProcessStartInfo(item.Issue?.HtmlUrl ?? "")
             {
                 UseShellExecute = true
             });
@@ -207,13 +207,9 @@ public partial class MainWindow : Window
 
     private void ToolBarWithoutOverflow_Loaded(object sender, RoutedEventArgs e)
     {
-        if (sender is ToolBar toolBar)
-        {
-            if (toolBar.Template.FindName("OverflowGrid", toolBar) is FrameworkElement overflowGrid)
-            {
-                overflowGrid.Visibility = Visibility.Collapsed;
-            }
-        }
+        if (sender is ToolBar toolBar 
+            && toolBar.Template.FindName("OverflowGrid", toolBar) is FrameworkElement overflowGrid)
+            overflowGrid.Visibility = Visibility.Collapsed;
     }
     private void ReleaseItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -237,7 +233,7 @@ public partial class MainWindow : Window
     }
 
     private void UpdateBTODescriptionButton_Click(object sender, RoutedEventArgs e)
-        => Model.UpdateBTODescription();
+        => _ = Model.UpdateBTODescription();
 
     private void HelpToWorkApp_Click(object sender, RoutedEventArgs e)
     {

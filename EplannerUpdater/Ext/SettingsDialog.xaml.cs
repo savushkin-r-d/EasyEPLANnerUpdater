@@ -38,17 +38,17 @@ public partial class SettingsDialog : Window
             {
                 mainWindow.Model.GitHub.Credentials = Credentials.Anonymous;
             }
-            CheckPAT();
+            _ = CheckPAT();
         }
     }
 
-    private async void CheckPAT()
+    private async Task CheckPAT()
     {
         if (Owner is MainWindow mainWindow)
         {
             try
             {
-                var user = await mainWindow.Model.GitHub.User.Current();
+                await mainWindow.Model.GitHub.User.Current();
                 Pass.Visibility = Visibility.Visible;
                 NeedSetPAT.Visibility = Visibility.Collapsed;
                 Failure.Visibility = Visibility.Collapsed;
@@ -80,7 +80,7 @@ public partial class SettingsDialog : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        CheckPAT();
+        _ = CheckPAT();
     }
 
     private void CreateTokenButton_Click(object sender, RoutedEventArgs e)
