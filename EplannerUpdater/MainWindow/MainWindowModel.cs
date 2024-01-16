@@ -424,23 +424,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
             if (string.IsNullOrEmpty(Settings.Default.ReleaseTag) is false)
             {
-                var completedTask = await Task.WhenAny(taskReleases, Task.Delay(5000, timeoutCancellationTokenSource.Token));
-                if (completedTask == taskReleases)
-                {
-                    timeoutCancellationTokenSource.Cancel();
-                    Releases = (await taskReleases).AsEnumerable().OrderByDescending(r => r.CreatedAt)
-                        .TakeWhile(r => r.TagName != Settings.Default.InitialReleaseAfter)
-                        .Select(r => new ReleaseItem(r) as IReleaseItem)
-                        .ToList();
-                }
-                else
-                {
-                    throw new TimeoutException("The operation has timed out.");
-                }
-            }
-
-               
-
+                CurrentRelease = Releases.Find(r => r.Release.TagName == Settings.Default.ReleaseTag);
 
                 if (CurrentRelease is not null)
                     CurrentRelease.IsCurrentRelease = Settings.Default.UsePullRequestVersion is false;
