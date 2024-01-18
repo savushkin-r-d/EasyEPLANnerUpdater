@@ -1,0 +1,13 @@
+name: SafeToTestLabel
+
+on:
+  pull_request_target:
+    branches: [ main ]
+    types: [ labeled ]
+
+jobs:
+  check label:
+    name: Check label
+    runs-on: ubuntu-latest
+    if: (github.event.action == 'labeled' && github.event.label.name == 'safe to test')
+    run: echo safe to test
