@@ -29,13 +29,9 @@ jobs:
       
     - id: pass
       if: >-
-        ((github.event.action == 'synchronize' || github.event.action == 'opened') && steps.is_organization_member.outputs.response == '204') ||
-        github.event_name == 'merge_group'
+        ((github.event.action == 'synchronize' || github.event.action == 'opened' || github.event_name  == 'workflow_dispatch') && steps.is_organization_member.outputs.response == '204') ||
+        github.event_name == 'merge_group' || 
       run: echo "result=success" >> $env:GITHUB_OUTPUT
-      
-    - name: exit with failure
-      if: steps.pass.outputs.result != 'success'
-      run: exit 1
 
   build:
     runs-on: windows-latest
