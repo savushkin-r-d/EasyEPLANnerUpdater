@@ -1,8 +1,8 @@
 name: DotNetBuild
 
-on:
-  workflow_call:
+on: [workflow_call]
 
+jobs:
   build:
     runs-on: windows-latest
     steps:
