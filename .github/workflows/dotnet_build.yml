@@ -7,9 +7,6 @@ on:
   merge_group:
     types: [ checks_requested ]
   workflow_dispatch:
-  workflow_run:
-    workflows: [SafeToTestLabel]
-    types: [completed]
   workflow_call:
 
 jobs:
