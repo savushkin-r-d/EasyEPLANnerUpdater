@@ -10,6 +10,7 @@ on:
   workflow_run:
     workflows: [SafeToTestLabel]
     types: [completed]
+  workflow_call:
 
 jobs:
   check:
