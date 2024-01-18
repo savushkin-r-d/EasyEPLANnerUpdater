@@ -8,8 +8,7 @@ on:
 jobs:
   call-workflow-passing-data:
     if: (github.event.action == 'labeled' && github.event.label.name == 'safe to test')
-    steps:
-    - uses: octo-org/example-repo/.github/workflows/reusable-workflow.yml@main
-      with:
-        config-path: .github\workflows\dotnet_build.yml
-      secrets: inherit
+    uses: octo-org/example-repo/.github/workflows/reusable-workflow.yml@main
+    with:
+      config-path: .github/labeler.yml
+    secrets: inherit
