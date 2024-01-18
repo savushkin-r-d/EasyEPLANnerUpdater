@@ -9,6 +9,3 @@ jobs:
   call-workflow-passing-data:
     if: (github.event.action == 'labeled' && github.event.label.name == 'safe to test')
     uses: ./.github/workflows/dotnet_build.yml
-    with:
-      config-path: .github/workflows/dotnet_build.yml
-    secrets: inherit
