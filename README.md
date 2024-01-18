@@ -1,3 +1,4 @@
+TEST
 # EasyEPLANner Updater - Open Source
 
 EasyEPLANner Updater - Средство управления обновлениями для проекта [EasyEPLANner](https://github.com/savushkin-r-d/EasyEPLANner).
