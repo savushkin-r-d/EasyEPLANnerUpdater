@@ -6,8 +6,9 @@ on:
     types: [ labeled ]
 
 jobs:
-  check label:
-    name: Check label
+  check:
+    name: Check
     runs-on: ubuntu-latest
     if: (github.event.action == 'labeled' && github.event.label.name == 'safe to test')
-    run: echo safe to test
+    steps:
+      run: echo safe to test
