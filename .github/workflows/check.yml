@@ -31,4 +31,10 @@ jobs:
         (github.event.action == 'labeled' && github.event.label.name == 'safe to test') ||
         ((github.event.action == 'synchronize' || github.event.action == 'opened') && steps.is_organization_member.outputs.response == '204') ||
         github.event_name == 'merge_group'
-      uses: ./.github/workflows/dotnet_build.yml
+      run: echo "result=success" >> $env:GITHUB_OUTPUT
+      
+  build:
+    needs: check
+    if: needs.check.outputs.result == 'success'
+    uses: ./.github/workflows/dotnet_build.yml
+    
