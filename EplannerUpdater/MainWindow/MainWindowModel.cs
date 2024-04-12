@@ -332,19 +332,28 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     {
         List<PullRequest> pullRequestList;
         List<Artifact> artifactList;
-        List<Issue> issueList;
+        List<Issue> issueList = new();
 
         try
         {
             pullRequestList = [.. GitHub.Repository.PullRequest.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo).Result.Where(pr => pr.Draft is false)];
             artifactList = [.. GitHub.Actions.Artifacts.ListArtifacts(Settings.Default.GitOwner, Settings.Default.GitRepo).Result.Artifacts];
-            issueList = [.. GitHub.Issue.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo, new RepositoryIssueRequest { State = ItemStateFilter.Open }).Result];
         }
         catch
         {
             App.UpdateCheckerError("Ошибка!");
             return;
         }
+
+        try
+        {
+            issueList = [.. GitHub.Issue.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo, new RepositoryIssueRequest { State = ItemStateFilter.Open }).Result];
+        }
+        catch(Exception)
+        {
+            // do nothing
+        }
+
 
         PullRequests = artifactList
             .Where(art => pullRequestList.Exists(pr => art.WorkflowRun.HeadSha == pr.Head.Sha))
