@@ -332,7 +332,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
     {
         List<PullRequest> pullRequestList;
         List<Artifact> artifactList;
-        List<Issue> issueList = new();
+        List<Issue> issueList;
 
         try
         {
@@ -347,11 +347,19 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         try
         {
-            issueList = [.. GitHub.Issue.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo, new RepositoryIssueRequest { State = ItemStateFilter.Open }).Result];
+            issueList = [.. GitHub.Issue.GetAllForRepository(
+                Settings.Default.GitOwner,
+                Settings.Default.GitRepo,
+                new RepositoryIssueRequest
+                {
+                    State = ItemStateFilter.Open,
+                    Filter = IssueFilter.All,
+                }).Result];
         }
         catch(Exception)
         {
-            // do nothing
+            // Ошибка получения списка issue
+            issueList = [];
         }
 
 
