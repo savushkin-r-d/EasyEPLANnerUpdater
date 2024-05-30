@@ -31,6 +31,13 @@ public class PullRequestItem(PullRequest pullRequest, Artifact artifact, Issue? 
         .Select(user => user.Login)
         .Contains(App.MainWindow?.Model?.User?.Login);
 
-    public string GroupName => ReviewRequested ? "Ожидают обзора" : "Все запросы";
+    public bool IsDraft => pullRequest.Draft;
+
+    public string GroupName => this switch
+    {
+        { IsDraft: true } => "В разработке",
+        { ReviewRequested: true } => "Ожидают обзора",
+        _ => "Все запросы",
+    };
 }
     

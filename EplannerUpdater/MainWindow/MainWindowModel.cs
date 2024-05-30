@@ -336,7 +336,7 @@ public partial class MainWindowModel : IMainWindowModel, INotifyPropertyChanged
 
         try
         {
-            pullRequestList = [.. GitHub.Repository.PullRequest.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo).Result.Where(pr => pr.Draft is false)];
+            pullRequestList = [.. GitHub.Repository.PullRequest.GetAllForRepository(Settings.Default.GitOwner, Settings.Default.GitRepo).Result];
             artifactList = [.. GitHub.Actions.Artifacts.ListArtifacts(Settings.Default.GitOwner, Settings.Default.GitRepo).Result.Artifacts];
         }
         catch
